@@ -1,0 +1,157 @@
+{
+  "id": "trello-project-health",
+  "title": "Trello Project Health",
+  "prompt": "Review open cards on the selected launch board, then inspect the comments on the one blocked card. Summarize blocked work, due-date risk, and the latest stated owner update.",
+  "instructions": "Use the supplied board and open-card filter, with only the returned card fields. Read one selected card and its comments for supporting detail. Do not move, archive, comment on, or assign cards. Report the sample size and distinguish a due date from evidence of a committed delivery.",
+  "fixture_summary": "Synthetic launch board sample has four open cards, including one blocked dependency; the selected card thread identifies what is still needed.",
+  "inputs": {
+    "boardId": "board-launch-demo",
+    "filter": "open",
+    "cardId": "card-demo-22"
+  },
+  "steps": [
+    {
+      "id": "list_open_cards",
+      "alias": "launch_board",
+      "integration": "trello",
+      "action": "list_cards",
+      "tool": "launch_board__list_cards",
+      "arguments": {
+        "boardId": "board-launch-demo",
+        "filter": "open",
+        "fields": "name,desc,due,dueComplete,idList,labels"
+      },
+      "records": [
+        {
+          "id": "card-demo-21",
+          "app": "Trello",
+          "title": "Confirm analytics event names",
+          "detail": "Synthetic open card due 2026-11-17; owner is Dana.",
+          "url": "https://example.com/records/card-demo-21",
+          "card_id": "card-demo-21",
+          "card_state": "open",
+          "blocked": false,
+          "due_date": "2026-11-17",
+          "owner": "Dana"
+        },
+        {
+          "id": "card-demo-22",
+          "app": "Trello",
+          "title": "Validate regional export permissions",
+          "detail": "Synthetic open card, due 2026-11-15, marked blocked.",
+          "url": "https://example.com/records/card-demo-22",
+          "card_id": "card-demo-22",
+          "card_state": "open",
+          "blocked": true,
+          "due_date": "2026-11-15",
+          "owner": "Riley"
+        },
+        {
+          "id": "card-demo-23",
+          "app": "Trello",
+          "title": "Prepare support handoff notes",
+          "detail": "Synthetic open card with no due date.",
+          "url": "https://example.com/records/card-demo-23",
+          "card_id": "card-demo-23",
+          "card_state": "open",
+          "blocked": false,
+          "due_date": null,
+          "owner": "Morgan"
+        },
+        {
+          "id": "card-demo-24",
+          "app": "Trello",
+          "title": "Review launch checklist",
+          "detail": "Synthetic open card due 2026-11-16; checklist has one pending item.",
+          "url": "https://example.com/records/card-demo-24",
+          "card_id": "card-demo-24",
+          "card_state": "open",
+          "blocked": false,
+          "due_date": "2026-11-16",
+          "owner": "Sam"
+        }
+      ]
+    },
+    {
+      "id": "read_blocked_card",
+      "alias": "launch_board",
+      "integration": "trello",
+      "action": "get_card",
+      "tool": "launch_board__get_card",
+      "arguments": {
+        "cardId": "card-demo-22",
+        "fields": "name,desc,due,idList,labels",
+        "includeChecklists": true
+      },
+      "records": [
+        {
+          "id": "card-demo-22",
+          "app": "Trello",
+          "title": "Validate regional export permissions",
+          "detail": "Full synthetic card: access review is pending from the data owner. Checklist has one unfinished permission check.",
+          "url": "https://example.com/records/card-demo-22",
+          "card_id": "card-demo-22",
+          "card_state": "open",
+          "blocked": true,
+          "due_date": "2026-11-15",
+          "owner": "Riley",
+          "open_checklist_items": 1
+        }
+      ]
+    },
+    {
+      "id": "read_blocked_card_comments",
+      "alias": "launch_board",
+      "integration": "trello",
+      "action": "list_comments",
+      "tool": "launch_board__list_comments",
+      "arguments": {
+        "cardId": "card-demo-22",
+        "limit": 10
+      },
+      "records": [
+        {
+          "id": "card-demo-22",
+          "app": "Trello",
+          "title": "Validate regional export permissions",
+          "detail": "Synthetic card comment: Riley says the data owner will confirm access scope Monday morning; no confirmation is recorded yet.",
+          "url": "https://example.com/records/card-demo-22",
+          "card_id": "card-demo-22",
+          "card_state": "open",
+          "blocked": true,
+          "due_date": "2026-11-15",
+          "owner": "Riley",
+          "open_checklist_items": 1,
+          "owner_update_present": true,
+          "permission_confirmed": false
+        }
+      ]
+    }
+  ],
+  "metrics": [
+    {
+      "name": "sampled_open_cards",
+      "op": "count"
+    },
+    {
+      "name": "blocked_cards",
+      "op": "count",
+      "where": {
+        "blocked": true
+      }
+    },
+    {
+      "name": "blocked_cards_with_owner_update",
+      "op": "count",
+      "where": {
+        "blocked": true,
+        "owner_update_present": true
+      }
+    }
+  ],
+  "expected_metrics": {
+    "sampled_open_cards": 4,
+    "blocked_cards": 1,
+    "blocked_cards_with_owner_update": 1
+  }
+}
